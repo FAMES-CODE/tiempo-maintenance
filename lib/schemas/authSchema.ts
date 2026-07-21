@@ -5,8 +5,10 @@ import * as z from "zod";
 export const RegisterSchema = z
   .object({
     username: z.string().min(3, "Username must be at least 3 characters long"),
-    password: z.string().min(6, "Password must be at least 6 characters long"),
-    confirmPassword: z.string().min(6, "Confirm Password must be at least 6 characters long"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
+    confirmPassword: z
+      .string()
+      .min(8, "Confirm password must be at least 8 characters long"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -19,8 +21,8 @@ export function createRegisterSchema(t: TFunction<"common", undefined>) {
   return z
     .object({
       username: z.string().min(3, t("common.validation.registerUsernameMin")),
-      password: z.string().min(6, t("common.validation.registerPasswordMin")),
-      confirmPassword: z.string().min(6, t("common.validation.registerConfirmMin")),
+      password: z.string().min(8, t("common.validation.registerPasswordMin")),
+      confirmPassword: z.string().min(8, t("common.validation.registerConfirmMin")),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t("common.validation.passwordsMismatch"),

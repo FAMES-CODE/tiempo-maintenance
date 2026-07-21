@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { RegisterSchema } from "@/lib/schemas/authSchema";
 
 export async function POST(request: Request) {
   const rateLimited = enforceRateLimit(request, { tier: "admin" });
@@ -14,35 +15,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const data = await request.json();
-  if (!data.username || !data.password) {
-    return new Response("Username and password are required", { status: 400 });
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
   }
-  if (data.password.length < 8) {
-    return new Response("Password must be at least 8 characters long", {
-      status: 400,
-    });
+
+  const parsed = RegisterSchema.safeParse(payload);
+  if (!parsed.success) {
+    const message =
+      parsed.error.issues[0]?.message ?? "Invalid registration data";
+    return NextResponse.json({ message }, { status: 400 });
   }
-  if (data.password === data.confirmPassword) {
-    const existingUser = await prisma.user.findUnique({
-      where: { username: data.username },
-    });
-    if (existingUser) {
-      return new Response(JSON.stringify({ message: "User already exists" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await prisma.user.create({
-      data: {
-        username: data.username,
-        password: hashedPassword,
-      },
-      omit: { password: true },
-    });
-    return NextResponse.json(user);
-  } else {
-    return new Response("Passwords do not match", { status: 400 });
+
+  const { username, password } = parsed.data;
+
+  const existingUser = await prisma.user.findUnique({
+    where: { username },
+  });
+  if (existingUser) {
+    return NextResponse.json({ message: "User already exists" }, { status: 400 });
   }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data: {
+      username,
+      password: hashedPassword,
+    },
+    omit: { password: true },
+  });
+
+  return NextResponse.json(user);
 }

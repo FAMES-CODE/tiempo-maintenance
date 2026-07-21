@@ -70,7 +70,13 @@ function RegisterForm({ className, ...props }: React.ComponentProps<"div">) {
         body: JSON.stringify({ username, password, confirmPassword }),
       });
 
-      const body = await response.json();
+      const text = await response.text();
+      let body: { message?: string } = {};
+      try {
+        body = text ? JSON.parse(text) : {};
+      } catch {
+        body = { message: text };
+      }
 
       if (response.ok) {
         notify(t("common.register.messages.success"), "success");
