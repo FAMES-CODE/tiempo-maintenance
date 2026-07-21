@@ -1,7 +1,10 @@
-// server.ts
+import path from "node:path";
 import { config } from "dotenv";
-config({ path: ".env.local" });
-config({ path: ".env" });
+
+const rootDir = path.resolve(__dirname);
+
+config({ path: path.join(rootDir, ".env.local") });
+config({ path: path.join(rootDir, ".env") });
 
 async function main() {
   const { createServer } = await import("http");
@@ -11,7 +14,7 @@ async function main() {
   const { startCronScheduler } = await import("./lib/cron/scheduler");
 
   const dev = process.env.NODE_ENV !== "production";
-  const app = next({ dev });
+  const app = next({ dev, dir: rootDir });
   const handle = app.getRequestHandler();
 
   app.prepare().then(async () => {
