@@ -3,7 +3,10 @@ import { join } from "path";
 import prisma from "@/app/db";
 import { normalizePublicAssetPath } from "@/lib/api-url";
 import { requireSession } from "@/lib/auth/api-auth";
-import { getCallSheetIfAccessible } from "@/lib/call-sheet/access";
+import {
+  getCallSheetIfAccessible,
+  getCallSheetIfViewable,
+} from "@/lib/call-sheet/access";
 
 function withFileUrl<T extends { id: number; callSheetId: number }>(picture: T) {
   return {
@@ -28,7 +31,7 @@ export async function GET(
       });
     }
 
-    const sheet = await getCallSheetIfAccessible(auth.session, parsedId);
+    const sheet = await getCallSheetIfViewable(auth.session, parsedId);
     if (!sheet) {
       return new Response(JSON.stringify({ error: "Call sheet not found" }), {
         status: 404,

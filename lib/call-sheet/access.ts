@@ -12,14 +12,9 @@ export function getSessionUserId(session: Session): number {
   return Number(session.user.id);
 }
 
-export function getCallSheetListWhere(session: Session) {
-  if (isCallSheetAdmin(session)) {
-    return callSheetNotDeleted;
-  }
-  return {
-    ...callSheetNotDeleted,
-    createdById: getSessionUserId(session),
-  };
+/** All authenticated users can browse every non-deleted call sheet. */
+export function getCallSheetListWhere(_session: Session) {
+  return callSheetNotDeleted;
 }
 
 export function canModifyCallSheet(
@@ -32,11 +27,16 @@ export function canModifyCallSheet(
   );
 }
 
-export async function getCallSheetIfAccessible(session: Session, id: number) {
-  const sheet = await prisma.callSheet.findFirst({
+export async function getCallSheetIfViewable(_session: Session, id: number) {
+  return prisma.callSheet.findFirst({
     where: { id, ...callSheetNotDeleted },
     select: { id: true, createdById: true, status: true },
   });
+}
+
+/** Returns the sheet only when the user may edit, delete, or upload to it. */
+export async function getCallSheetIfAccessible(session: Session, id: number) {
+  const sheet = await getCallSheetIfViewable(session, id);
   if (!sheet || !canModifyCallSheet(session, sheet)) {
     return null;
   }

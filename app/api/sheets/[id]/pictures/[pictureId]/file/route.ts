@@ -2,7 +2,7 @@ import { readFile } from "fs/promises";
 import { join, extname } from "path";
 import prisma from "@/app/db";
 import { requireSession } from "@/lib/auth/api-auth";
-import { getCallSheetIfAccessible } from "@/lib/call-sheet/access";
+import { getCallSheetIfViewable } from "@/lib/call-sheet/access";
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -29,7 +29,7 @@ export async function GET(
       });
     }
 
-    const sheet = await getCallSheetIfAccessible(auth.session, callSheetId);
+    const sheet = await getCallSheetIfViewable(auth.session, callSheetId);
     if (!sheet) {
       return new Response(JSON.stringify({ error: "Call sheet not found" }), {
         status: 404,
