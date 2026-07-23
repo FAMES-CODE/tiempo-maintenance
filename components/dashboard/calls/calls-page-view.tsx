@@ -384,7 +384,10 @@ function CallDetailsDialog({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setUploadError((data?.error as string) ?? t("common.dashboard.calls.dialog.uploadFailed"));
+        setUploadError(
+          (data?.error as string) ??
+            t("common.dashboard.calls.dialog.uploadFailed"),
+        );
         return;
       }
       await fetchPictures();
@@ -426,7 +429,6 @@ function CallDetailsDialog({
         credentials: "include",
       });
       if (res.ok) {
-        setOpen(false);
         onResolved();
       }
     } finally {
@@ -524,7 +526,9 @@ function CallDetailsDialog({
                         variant="outline"
                         size="icon"
                         className="size-8 text-destructive hover:text-destructive"
-                        aria-label={t("common.dashboard.calls.dialog.deleteAria")}
+                        aria-label={t(
+                          "common.dashboard.calls.dialog.deleteAria",
+                        )}
                       >
                         <Trash2 className="size-3.5" />
                       </Button>
@@ -635,8 +639,12 @@ function CallDetailsDialog({
                     <SelectValue
                       placeholder={
                         loadingCustomers
-                          ? t("common.dashboard.overview.newCallSheet.loadingCustomers")
-                          : t("common.dashboard.overview.newCallSheet.selectCustomer")
+                          ? t(
+                              "common.dashboard.overview.newCallSheet.loadingCustomers",
+                            )
+                          : t(
+                              "common.dashboard.overview.newCallSheet.selectCustomer",
+                            )
                       }
                     />
                   </SelectTrigger>
@@ -688,239 +696,251 @@ function CallDetailsDialog({
               </div>
             </div>
           ) : (
-          <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground">{t("common.dashboard.calls.dialog.status")}</span>
-            <StatusBadge status={row.status} />
-          </div>
-          <dl className="grid gap-3 rounded-lg border bg-muted/30 p-4">
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.customer")}
-              </dt>
-              <dd className="mt-0.5 font-medium">{row.customer.CLIENT}</dd>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {t("common.dashboard.calls.dialog.number")}
-                </dt>
-                <dd className="mt-0.5">{row.callNumber || "—"}</dd>
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground">
+                  {t("common.dashboard.calls.dialog.status")}
+                </span>
+                <StatusBadge status={row.status} />
               </div>
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {t("common.dashboard.calls.dialog.simLine")}
-                </dt>
-                <dd className="mt-0.5">{row.callSim || "—"}</dd>
-              </div>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.problemType")}
-              </dt>
-              <dd className="mt-0.5">{row.problemType || "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.description")}
-              </dt>
-              <dd className="mt-0.5 whitespace-pre-wrap">
-                {row.problemDescription || "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.observation")}
-              </dt>
-              <dd className="mt-0.5 whitespace-pre-wrap">
-                {row.observation || "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.createdBy")}
-              </dt>
-              <dd className="mt-0.5">{row.user.username}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.callRating")}
-              </dt>
-              <dd className="mt-1.5 flex items-center gap-2">
-                <StarRating
-                  value={rating}
-                  readonly={!canManage}
-                  onChange={(v) => void handleSaveRating(v)}
-                />
-                {savingRating && (
-                  <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
-                )}
-              </dd>
-            </div>
-          </dl>
-          {/* ── Pictures ────────────────────────────────────── */}
-          <div className="rounded-lg border bg-muted/20 p-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                <ImageIcon className="size-3.5" />
-                {t("common.dashboard.calls.dialog.pictures")}
-                {pictures.length > 0 && (
-                  <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">
-                    {pictures.length}
-                  </span>
-                )}
-              </h2>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 gap-1.5 text-xs"
-                disabled={uploading || !canManage}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Upload className="size-3.5" />
-                )}
-                {uploading ? t("common.dashboard.calls.dialog.uploading") : t("common.dashboard.calls.dialog.add")}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                onChange={handleUpload}
-              />
-            </div>
-
-            {uploadError && (
-              <p className="text-xs text-destructive">{uploadError}</p>
-            )}
-
-            {loadingPictures ? (
-              <div className="flex items-center justify-center py-4 text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
-              </div>
-            ) : pictures.length === 0 ? (
-              <p className="py-2 text-center text-xs text-muted-foreground">
-                {t("common.dashboard.calls.dialog.noPictures")}
-              </p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {pictures.map((pic) => (
-                  <div
-                    key={pic.id}
-                    className="group relative aspect-square overflow-hidden rounded-md border bg-muted"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={callSheetPictureFileUrl(row.id, pic.id)}
-                      alt=""
-                      className="size-full object-cover cursor-pointer transition-opacity group-hover:opacity-80"
-                      onClick={() =>
-                        setLightboxUrl(
-                          callSheetPictureFileUrl(row.id, pic.id),
-                        )
-                      }
-                    />
-                    {canManage && (
-                    <button
-                      type="button"
-                      aria-label={t("common.dashboard.calls.dialog.deletePictureAria")}
-                      className="absolute right-1 top-1 hidden rounded-full bg-background/80 p-0.5 text-destructive shadow group-hover:flex items-center justify-center"
-                      disabled={deletingId === pic.id}
-                      onClick={() => void handleDeletePicture(pic.id)}
-                    >
-                      {deletingId === pic.id ? (
-                        <Loader2 className="size-3 animate-spin" />
-                      ) : (
-                        <Trash2 className="size-3" />
-                      )}
-                    </button>
-                    )}
+              <dl className="grid gap-3 rounded-lg border bg-muted/30 p-4">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.customer")}
+                  </dt>
+                  <dd className="mt-0.5 font-medium">{row.customer.CLIENT}</dd>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {t("common.dashboard.calls.dialog.number")}
+                    </dt>
+                    <dd className="mt-0.5">{row.callNumber || "—"}</dd>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <div className="rounded-lg border bg-muted/20 p-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("common.dashboard.calls.dialog.bonTitle")}
-              </p>
-              <div className="grid gap-2">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-3">
-                    <Input
-                      value={article}
-                      onChange={(e) => setArticle(e.target.value)}
-                      placeholder={t("common.dashboard.calls.dialog.articlePlaceholder")}
-                    />
-                  </div>
-                  <div className="flex flex-col col-span-1 gap-2">
-                    <Label>{t("common.dashboard.calls.dialog.quantity")}</Label>
-                    <Input
-                      value={String(qte)}
-                      onChange={(e) => setQte(Number(e.target.value))}
-                      placeholder={t("common.dashboard.calls.dialog.quantityPlaceholder")}
-                    />
-                  </div>
-                  <div className="flex flex-col col-span-1 gap-2">
-                    <Label>{t("common.dashboard.calls.dialog.price")}</Label>
-                    <Input
-                      value={String(pvHtAr)}
-                      onChange={(e) => setPvHtAr(Number(e.target.value))}
-                      placeholder={t("common.dashboard.calls.dialog.pricePlaceholder")}
-                    />
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {t("common.dashboard.calls.dialog.simLine")}
+                    </dt>
+                    <dd className="mt-0.5">{row.callSim || "—"}</dd>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("common.dashboard.calls.dialog.totalHt")}{" "}
-                  <span className="font-mono">
-                    {Number.isFinite(qte) && Number.isFinite(pvHtAr)
-                      ? (qte * pvHtAr).toFixed(2)
-                      : "—"}
-                  </span>
-                </p>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.problemType")}
+                  </dt>
+                  <dd className="mt-0.5">{row.problemType || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.description")}
+                  </dt>
+                  <dd className="mt-0.5 whitespace-pre-wrap">
+                    {row.problemDescription || "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.observation")}
+                  </dt>
+                  <dd className="mt-0.5 whitespace-pre-wrap">
+                    {row.observation || "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.createdBy")}
+                  </dt>
+                  <dd className="mt-0.5">{row.user.username}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.callRating")}
+                  </dt>
+                  <dd className="mt-1.5 flex items-center gap-2">
+                    <StarRating
+                      value={rating}
+                      readonly={!canManage}
+                      onChange={(v) => void handleSaveRating(v)}
+                    />
+                    {savingRating && (
+                      <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+                    )}
+                  </dd>
+                </div>
+              </dl>
+              {/* ── Pictures ────────────────────────────────────── */}
+              <div className="rounded-lg border bg-muted/20 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                    <ImageIcon className="size-3.5" />
+                    {t("common.dashboard.calls.dialog.pictures")}
+                    {pictures.length > 0 && (
+                      <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">
+                        {pictures.length}
+                      </span>
+                    )}
+                  </h2>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs"
+                    disabled={uploading || !canManage}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="size-3.5" />
+                    )}
+                    {uploading
+                      ? t("common.dashboard.calls.dialog.uploading")
+                      : t("common.dashboard.calls.dialog.add")}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleUpload}
+                  />
+                </div>
+
+                {uploadError && (
+                  <p className="text-xs text-destructive">{uploadError}</p>
+                )}
+
+                {loadingPictures ? (
+                  <div className="flex items-center justify-center py-4 text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" />
+                  </div>
+                ) : pictures.length === 0 ? (
+                  <p className="py-2 text-center text-xs text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.noPictures")}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {pictures.map((pic) => (
+                      <div
+                        key={pic.id}
+                        className="group relative aspect-square overflow-hidden rounded-md border bg-muted"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={callSheetPictureFileUrl(row.id, pic.id)}
+                          alt=""
+                          className="size-full object-cover cursor-pointer transition-opacity group-hover:opacity-80"
+                          onClick={() =>
+                            setLightboxUrl(
+                              callSheetPictureFileUrl(row.id, pic.id),
+                            )
+                          }
+                        />
+                        {canManage && (
+                          <button
+                            type="button"
+                            aria-label={t(
+                              "common.dashboard.calls.dialog.deletePictureAria",
+                            )}
+                            className="absolute right-1 top-1 hidden rounded-full bg-background/80 p-0.5 text-destructive shadow group-hover:flex items-center justify-center"
+                            disabled={deletingId === pic.id}
+                            onClick={() => void handleDeletePicture(pic.id)}
+                          >
+                            {deletingId === pic.id ? (
+                              <Loader2 className="size-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-3" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-            <Button
-              type="button"
-              onClick={handleCreateBon}
-              disabled={creatingBon || !canSyncBon}
-              className="w-full"
-            >
-              {creatingBon ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  {t("common.dashboard.calls.dialog.creating")}
-                </>
-              ) : row.isSynced ? (
-                t("common.dashboard.calls.dialog.alreadySynchronized")
-              ) : row.status !== "resolved" ? (
-                t("common.dashboard.calls.dialog.resolveBeforeSync")
-              ) : (
-                t("common.dashboard.calls.dialog.createFirebirdNote")
-              )}
-            </Button>
-            {bonResult ? (
-              <p className="text-xs font-mono text-muted-foreground">
-                {bonResult}
-              </p>
-            ) : null}
-          </div>
-          <Link
-            href={withLocalePath(prefix, "/dashboard/customers")}
-            className={buttonVariants({
-              variant: "link",
-              className: "h-auto min-h-0 p-0 text-sm font-normal",
-            })}
-          >
-            {t("common.dashboard.calls.dialog.viewCustomersDirectory")}
-          </Link>
-          </>
+              <div
+                className={cn(
+                  "grid gap-2",
+                  row.status !== "resolved" && "hidden",
+                )}
+              >
+                <div className="rounded-lg border bg-muted/20 p-3">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.bonTitle")}
+                  </p>
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="col-span-3">
+                        <Input
+                          value={article}
+                          onChange={(e) => setArticle(e.target.value)}
+                          placeholder={t(
+                            "common.dashboard.calls.dialog.articlePlaceholder",
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col col-span-1 gap-2">
+                        <Label>
+                          {t("common.dashboard.calls.dialog.quantity")}
+                        </Label>
+                        <Input
+                          value={String(qte)}
+                          onChange={(e) => setQte(Number(e.target.value))}
+                          placeholder={t(
+                            "common.dashboard.calls.dialog.quantityPlaceholder",
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col col-span-1 gap-2">
+                        <Label>
+                          {t("common.dashboard.calls.dialog.price")}
+                        </Label>
+                        <Input
+                          value={String(pvHtAr)}
+                          onChange={(e) => setPvHtAr(Number(e.target.value))}
+                          placeholder={t(
+                            "common.dashboard.calls.dialog.pricePlaceholder",
+                          )}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("common.dashboard.calls.dialog.totalHt")}{" "}
+                      <span className="font-mono">
+                        {Number.isFinite(qte) && Number.isFinite(pvHtAr)
+                          ? (qte * pvHtAr).toFixed(2)
+                          : "—"}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleCreateBon}
+                  disabled={creatingBon || !canSyncBon}
+                  className="w-full"
+                >
+                  {creatingBon ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      {t("common.dashboard.calls.dialog.creating")}
+                    </>
+                  ) : row.isSynced ? (
+                    t("common.dashboard.calls.dialog.alreadySynchronized")
+                  ) : row.status !== "resolved" ? (
+                    t("common.dashboard.calls.dialog.resolveBeforeSync")
+                  ) : (
+                    t("common.dashboard.calls.dialog.createFirebirdNote")
+                  )}
+                </Button>
+                {bonResult ? (
+                  <p className="text-xs font-mono text-muted-foreground">
+                    {bonResult}
+                  </p>
+                ) : null}
+              </div>
+            </>
           )}
 
           {/* ── Lightbox ─────────────────────────────────────── */}
@@ -1139,7 +1159,11 @@ export default function CallsPageView() {
       },
       {
         id: "actions",
-        header: () => <span className="sr-only">{t("common.dashboard.calls.colActions")}</span>,
+        header: () => (
+          <span className="sr-only">
+            {t("common.dashboard.calls.colActions")}
+          </span>
+        ),
         cell: ({ row }) => (
           <CallDetailsDialog
             row={row.original}
@@ -1182,7 +1206,9 @@ export default function CallsPageView() {
             <Phone className="size-4" aria-hidden />
             {t("common.dashboard.calls.pageEyebrow")}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("common.dashboard.calls.pageTitle")}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("common.dashboard.calls.pageTitle")}
+          </h1>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
             {t("common.dashboard.calls.pageDescription")}
           </p>
@@ -1269,12 +1295,20 @@ export default function CallsPageView() {
               onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
             >
               <SelectTrigger className="w-full sm:w-[160px]">
-                <SelectValue placeholder={t("common.dashboard.calls.statusPlaceholder")} />
+                <SelectValue
+                  placeholder={t("common.dashboard.calls.statusPlaceholder")}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("common.dashboard.calls.statusAll")}</SelectItem>
-                <SelectItem value="pending">{t("common.dashboard.calls.statusPendingOnly")}</SelectItem>
-                <SelectItem value="resolved">{t("common.dashboard.calls.statusResolvedOnly")}</SelectItem>
+                <SelectItem value="all">
+                  {t("common.dashboard.calls.statusAll")}
+                </SelectItem>
+                <SelectItem value="pending">
+                  {t("common.dashboard.calls.statusPendingOnly")}
+                </SelectItem>
+                <SelectItem value="resolved">
+                  {t("common.dashboard.calls.statusResolvedOnly")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1367,7 +1401,12 @@ export default function CallsPageView() {
                     {filteredRows.length}
                   </span>
                   {filteredRows.length !== rows.length && (
-                    <span> {t("common.dashboard.calls.paginationFiltered", { count: rows.length })}</span>
+                    <span>
+                      {" "}
+                      {t("common.dashboard.calls.paginationFiltered", {
+                        count: rows.length,
+                      })}
+                    </span>
                   )}
                 </p>
                 <div className="flex items-center gap-2">
