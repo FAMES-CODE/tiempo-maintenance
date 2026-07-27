@@ -179,7 +179,7 @@ function NewformSheet() {
         }
       />
 
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[80vw] sm:max-h-[95vh]">
         <div className="border-b bg-gradient-to-br from-primary/12 via-background to-chart-2/10 px-6 pb-4 pt-6">
           <DialogHeader className="gap-1 text-left">
             <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
@@ -196,10 +196,10 @@ function NewformSheet() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex max-h-[min(70vh,560px)] flex-col"
+          className="flex max-h-[min(90vh,760px)] flex-col"
         >
           <div className="space-y-5 overflow-y-auto px-6 py-5">
-            <FieldGroup className="gap-5">
+            <FieldGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="problemType">
                   {t("common.dashboard.overview.newCallSheet.problemTypeLabel")}
