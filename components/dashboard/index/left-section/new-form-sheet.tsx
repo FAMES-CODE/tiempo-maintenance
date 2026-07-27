@@ -51,9 +51,15 @@ import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
 const LINE_OPTIONS = [
-  { value: "905", label: "905" },
+  { value: "500", label: "500" },
+  { value: "501", label: "501" }, 
   { value: "503", label: "503" },
+  { value: "504", label: "504" },
+  { value: "816", label: "816" },
   { value: "903", label: "903" },
+  { value: "905", label: "905" },
+  { value: "907", label: "907" },
+
 ] as const;
 
 type CustomerOption = { id: number; CLIENT: string };
