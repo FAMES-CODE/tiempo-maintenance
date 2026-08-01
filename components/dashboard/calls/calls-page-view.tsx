@@ -144,10 +144,35 @@ function formatDate(iso: string, locale?: string) {
   }
 }
 
-function truncate(text: string | null | undefined, max: number) {
-  if (!text) return "—";
-  if (text.length <= max) return text;
-  return `${text.slice(0, max)}…`;
+
+function getColumnLayoutClass(columnId: string, part: "header" | "cell") {
+  const layouts: Record<string, { header: string; cell: string }> = {
+    id: { header: "w-[24px]", cell: "w-[24px]" },
+    customer: {
+      header: "w-[120px]",
+      cell: "w-[120px] max-w-[120px] whitespace-normal",
+    },
+    callNumber: { header: "w-[120px]", cell: "w-[120px] whitespace-normal" },
+    callSim: { header: "w-[80px]", cell: "w-[80px]" },
+    problemType: {
+      header: "w-[100px]",
+      cell: "w-[100px] max-w-[100px] whitespace-normal",
+    },
+    observation: {
+      header: "w-[100px]",
+      cell: "w-[100px] max-w-[100px] whitespace-normal",
+    },
+    createdBy: {
+      header: "w-[74px]",
+      cell: "w-[74px] max-w-[74px] whitespace-normal",
+    },
+    status: { header: "w-[110px]", cell: "w-[110px]" },
+    rate: { header: "w-[130px]", cell: "w-[130px]" },
+    sync: { header: "w-[100px]", cell: "w-[100px] whitespace-normal" },
+    actions: { header: "w-[64px]", cell: "w-[64px]" },
+  };
+
+  return layouts[columnId]?.[part] ?? "";
 }
 
 function StarRating({
@@ -1070,11 +1095,17 @@ export default function CallsPageView() {
         id: "customer",
         accessorFn: (r) => r.customer?.CLIENT ?? "",
         header: t("common.dashboard.calls.colCustomer"),
-        cell: ({ row }) => (
-          <span className="max-w-[160px] truncate font-medium">
-            {row.original.customer?.CLIENT ?? "—"}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const name = row.original.customer?.CLIENT ?? "—";
+          return (
+            <span
+              className="line-clamp-2 break-words font-medium leading-snug"
+              title={name !== "—" ? name : undefined}
+            >
+              {name}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "callNumber",
@@ -1097,36 +1128,48 @@ export default function CallsPageView() {
       {
         accessorKey: "problemType",
         header: t("common.dashboard.calls.colProblem"),
-        cell: ({ getValue }) => (
-          <span
-            className="max-w-[140px] truncate"
-            title={(getValue() as string) ?? ""}
-          >
-            {truncate(getValue() as string | null, 40)}
-          </span>
-        ),
+        cell: ({ getValue }) => {
+          const text = (getValue() as string | null) || "—";
+          return (
+            <span
+              className="line-clamp-2 break-words leading-snug"
+              title={text !== "—" ? text : undefined}
+            >
+              {text}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "observation",
         header: t("common.dashboard.calls.colObservation"),
-        cell: ({ getValue }) => (
-          <span
-            className="max-w-[180px] truncate text-muted-foreground"
-            title={(getValue() as string) ?? ""}
-          >
-            {truncate(getValue() as string | null, 48)}
-          </span>
-        ),
+        cell: ({ getValue }) => {
+          const text = (getValue() as string | null) || "—";
+          return (
+            <span
+              className="line-clamp-2 break-words leading-snug text-muted-foreground"
+              title={text !== "—" ? text : undefined}
+            >
+              {text}
+            </span>
+          );
+        },
       },
       {
         id: "createdBy",
         accessorFn: (r) => r.user?.username ?? "",
         header: t("common.dashboard.calls.colCreatedBy"),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {row.original.user?.username ?? "—"}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const username = row.original.user?.username ?? "—";
+          return (
+            <span
+              className="line-clamp-2 break-words leading-snug text-muted-foreground"
+              title={username !== "—" ? username : undefined}
+            >
+              {username}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "status",
@@ -1333,14 +1376,20 @@ export default function CallsPageView() {
           {!error && !isLoading && (
             <>
               <div className="overflow-x-auto">
-                <Table>
+                <Table className="table-fixed">
                   <TableHeader>
                     {table.getHeaderGroups().map((hg) => (
-                      <TableRow key={hg.id} className="hover:bg-transparent">
+                      <TableRow
+                        key={hg.id}
+                        className="hover:bg-transparent"
+                      >
                         {hg.headers.map((header) => (
                           <TableHead
                             key={header.id}
-                            className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                            className={cn(
+                              "whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+                              getColumnLayoutClass(header.column.id, "header"),
+                            )}
                           >
                             {header.isPlaceholder
                               ? null
@@ -1361,7 +1410,13 @@ export default function CallsPageView() {
                           className="group border-b transition-colors hover:bg-muted/40"
                         >
                           {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id} className="align-middle">
+                            <TableCell
+                              key={cell.id}
+                              className={cn(
+                                "align-middle",
+                                getColumnLayoutClass(cell.column.id, "cell"),
+                              )}
+                            >
                               {flexRender(
                                 cell.column.columnDef.cell,
                                 cell.getContext(),
