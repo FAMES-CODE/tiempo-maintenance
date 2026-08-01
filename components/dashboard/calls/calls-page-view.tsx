@@ -31,6 +31,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -143,7 +144,6 @@ function formatDate(iso: string, locale?: string) {
     return iso;
   }
 }
-
 
 function getColumnLayoutClass(columnId: string, part: "header" | "cell") {
   const layouts: Record<string, { header: string; cell: string }> = {
@@ -522,12 +522,19 @@ function CallDetailsDialog({
       >
         {t("common.dashboard.calls.dialog.details")}
       </Button>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+        showCloseButton={false}
+      >
         <DialogHeader>
           <div className="flex items-start justify-between gap-2">
-            <div>
+            <div className="min-w-0 flex-1">
               <DialogTitle>
-                {t("common.dashboard.calls.dialog.title", { id: row.id })}
+                {t("common.dashboard.calls.dialog.title", { id: row.id })} -{" "}
+                <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  {t("common.dashboard.calls.dialog.createdBy")}:{" "}
+                  {row.user.username}
+                </span>
               </DialogTitle>
               <DialogDescription>
                 {row.customer.CLIENT} ·{" "}
@@ -536,67 +543,83 @@ function CallDetailsDialog({
                 })}
               </DialogDescription>
             </div>
-            {canManage && !editing && (
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="size-8"
-                  aria-label={t("common.dashboard.calls.dialog.editAria")}
-                  onClick={() => setEditing(true)}
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="size-8 text-destructive hover:text-destructive"
-                        aria-label={t(
-                          "common.dashboard.calls.dialog.deleteAria",
-                        )}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    }
-                  />
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {t("common.dashboard.calls.dialog.deleteTitle")}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("common.dashboard.calls.dialog.deleteDescription", {
-                          id: row.id,
-                        })}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>
-                        {t("common.dashboard.calls.dialog.deleteCancel")}
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        disabled={deleting}
-                        onClick={() => void handleDelete()}
-                      >
-                        {deleting ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          t("common.dashboard.calls.dialog.deleteConfirm")
-                        )}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            )}
+            <div className="flex shrink-0 items-center gap-1">
+              {canManage && !editing && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    aria-label={t("common.dashboard.calls.dialog.editAria")}
+                    onClick={() => setEditing(true)}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-8 text-destructive hover:text-destructive"
+                          aria-label={t(
+                            "common.dashboard.calls.dialog.deleteAria",
+                          )}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      }
+                    />
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {t("common.dashboard.calls.dialog.deleteTitle")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t(
+                            "common.dashboard.calls.dialog.deleteDescription",
+                            {
+                              id: row.id,
+                            },
+                          )}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>
+                          {t("common.dashboard.calls.dialog.deleteCancel")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          disabled={deleting}
+                          onClick={() => void handleDelete()}
+                        >
+                          {deleting ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            t("common.dashboard.calls.dialog.deleteConfirm")
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+              <DialogClose
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "icon" }),
+                  "size-8",
+                )}
+              >
+                <X className="size-4" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </div>
         </DialogHeader>
+
         <div className="grid gap-4 text-sm">
           {editing ? (
             <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
@@ -653,6 +676,7 @@ function CallDetailsDialog({
                   />
                 </div>
               </div>
+
               <div className="grid gap-2">
                 <Label>{t("common.dashboard.calls.dialog.customer")}</Label>
                 <Select
@@ -687,6 +711,7 @@ function CallDetailsDialog({
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="grid gap-2">
                 <Label>{t("common.dashboard.calls.dialog.observation")}</Label>
                 <Textarea
@@ -697,6 +722,7 @@ function CallDetailsDialog({
                   rows={2}
                 />
               </div>
+
               {editError && (
                 <p className="text-xs text-destructive">{editError}</p>
               )}
@@ -727,13 +753,32 @@ function CallDetailsDialog({
             </div>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-muted-foreground">
-                  {t("common.dashboard.calls.dialog.status")}
-                </span>
-                <StatusBadge status={row.status} />
+              <div className="flex flex-row justify-between items-start gap-2">
+                <div className="flex flex-col items-start">
+                  <span className="text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.status")}
+                  </span>
+                  <span className="mt-1.5">
+                    <StatusBadge status={row.status} />
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("common.dashboard.calls.dialog.callRating")}
+                  </span>
+                  <span className="mt-1.5 flex items-center gap-2">
+                    <StarRating
+                      value={rating}
+                      readonly={!canManage}
+                      onChange={(v) => void handleSaveRating(v)}
+                    />
+                    {savingRating && (
+                      <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+                    )}
+                  </span>
+                </div>
               </div>
-              <dl className="grid gap-3 rounded-lg border bg-muted/30 p-4">
+              <dl className="grid gap-3 rounded-lg border bg-muted/30 p-4 text-sm">
                 <div>
                   <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {t("common.dashboard.calls.dialog.customer")}
@@ -754,47 +799,30 @@ function CallDetailsDialog({
                     <dd className="mt-0.5">{row.callSim || "—"}</dd>
                   </div>
                 </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("common.dashboard.calls.dialog.problemType")}
-                  </dt>
-                  <dd className="mt-0.5">{row.problemType || "—"}</dd>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {t("common.dashboard.calls.dialog.problemType")}
+                    </dt>
+                    <dd className="mt-0.5">{row.problemType || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {t("common.dashboard.calls.dialog.description")}
+                    </dt>
+                    <dd className="mt-0.5 whitespace-pre-wrap">
+                      {row.problemDescription || "—"}
+                    </dd>
+                  </div>
                 </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("common.dashboard.calls.dialog.description")}
-                  </dt>
-                  <dd className="mt-0.5 whitespace-pre-wrap">
-                    {row.problemDescription || "—"}
-                  </dd>
-                </div>
+
                 <div>
                   <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {t("common.dashboard.calls.dialog.observation")}
                   </dt>
                   <dd className="mt-0.5 whitespace-pre-wrap">
                     {row.observation || "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("common.dashboard.calls.dialog.createdBy")}
-                  </dt>
-                  <dd className="mt-0.5">{row.user.username}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("common.dashboard.calls.dialog.callRating")}
-                  </dt>
-                  <dd className="mt-1.5 flex items-center gap-2">
-                    <StarRating
-                      value={rating}
-                      readonly={!canManage}
-                      onChange={(v) => void handleSaveRating(v)}
-                    />
-                    {savingRating && (
-                      <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
-                    )}
                   </dd>
                 </div>
               </dl>
@@ -996,6 +1024,7 @@ function CallDetailsDialog({
             </div>
           )}
         </div>
+
         {canResolve && (
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
@@ -1379,10 +1408,7 @@ export default function CallsPageView() {
                 <Table className="table-fixed">
                   <TableHeader>
                     {table.getHeaderGroups().map((hg) => (
-                      <TableRow
-                        key={hg.id}
-                        className="hover:bg-transparent"
-                      >
+                      <TableRow key={hg.id} className="hover:bg-transparent">
                         {hg.headers.map((header) => (
                           <TableHead
                             key={header.id}
