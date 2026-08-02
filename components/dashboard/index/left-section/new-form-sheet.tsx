@@ -26,7 +26,14 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -42,9 +49,8 @@ import {
   Phone,
   Plus,
   ChevronsUpDown,
-  UserRound,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiUrl } from "@/lib/api-url";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -52,14 +58,13 @@ import { useTranslation } from "react-i18next";
 
 const LINE_OPTIONS = [
   { value: "500", label: "500" },
-  { value: "501", label: "501" }, 
+  { value: "501", label: "501" },
   { value: "503", label: "503" },
   { value: "504", label: "504" },
   { value: "816", label: "816" },
   { value: "903", label: "903" },
   { value: "905", label: "905" },
   { value: "907", label: "907" },
-
 ] as const;
 
 type CustomerOption = { id: number; CLIENT: string };
@@ -99,14 +104,14 @@ function NewformSheet() {
         const res = await fetch(apiUrl(`/api/customers?${params}`));
         if (!res.ok)
           throw new Error(
-            t("common.dashboard.overview.newCallSheet.errors.loadCustomersFailed"),
+            t(
+              "common.dashboard.overview.newCallSheet.errors.loadCustomersFailed",
+            ),
           );
         const data = (await res.json()) as {
           items: { id: number; CLIENT: string }[];
         };
-        setCustomers(
-          data.items.map((c) => ({ id: c.id, CLIENT: c.CLIENT })),
-        );
+        setCustomers(data.items.map((c) => ({ id: c.id, CLIENT: c.CLIENT })));
       } catch (e) {
         console.error(e);
         toast.error(
@@ -126,6 +131,19 @@ function NewformSheet() {
     }, 300);
     return () => clearTimeout(timer);
   }, [open, customerSearch, loadCustomers]);
+
+  const customerColumnMinWidth = useMemo(() => {
+    const placeholder = t(
+      "common.dashboard.overview.newCallSheet.selectCustomer",
+    );
+    const longestLabel = customers.reduce(
+      (longest, customer) =>
+        customer.CLIENT.length > longest.length ? customer.CLIENT : longest,
+      placeholder,
+    );
+    // Approximate trigger width: label + chevron and id prefix in list items.
+    return `${Math.max(longestLabel.length + 6, placeholder.length + 4)}ch`;
+  }, [customers, t]);
 
   const onSubmit: SubmitHandler<FormSheetFormValues> = async (data) => {
     const result = await createFormSheet({
@@ -185,8 +203,8 @@ function NewformSheet() {
         }
       />
 
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[80vw] sm:max-h-[95vh]">
-        <div className="border-b bg-gradient-to-br from-primary/12 via-background to-chart-2/10 px-6 pb-4 pt-6">
+      <DialogContent className="flex max-h-[min(95dvh,95vh)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[80vw]">
+        <div className="shrink-0 border-b bg-gradient-to-br from-primary/12 via-background to-chart-2/10 px-6 pb-4 pt-6">
           <DialogHeader className="gap-1 text-left">
             <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Headphones className="size-6" aria-hidden />
@@ -202,60 +220,118 @@ function NewformSheet() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex max-h-[min(90vh,760px)] flex-col"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="space-y-5 overflow-y-auto px-6 py-5">
-            <FieldGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="problemType">
-                  {t("common.dashboard.overview.newCallSheet.problemTypeLabel")}
-                </FieldLabel>
-                <FieldDescription>
-                  {t("common.dashboard.overview.newCallSheet.problemTypeDescription")}
-                </FieldDescription>
-                <Input
-                  id="problemType"
-                  placeholder={t("common.dashboard.overview.newCallSheet.problemTypePlaceholder")}
-                  autoComplete="off"
-                  className={cn(errors.problemType && "border-destructive")}
-                  {...register("problemType")}
-                />
-                {errors.problemType?.message && (
-                  <FieldError>{errors.problemType.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="problemDescription">
-                  {t("common.dashboard.overview.newCallSheet.whatHappenedLabel")}
-                </FieldLabel>
-                <FieldDescription>
-                  {t("common.dashboard.overview.newCallSheet.whatHappenedDescription")}
-                </FieldDescription>
-                <Textarea
-                  id="problemDescription"
-                  placeholder={t("common.dashboard.overview.newCallSheet.whatHappenedPlaceholder")}
-                  rows={4}
-                  className={cn(
-                    "min-h-[100px] resize-y",
-                    errors.problemDescription && "border-destructive",
-                  )}
-                  {...register("problemDescription")}
-                />
-                {errors.problemDescription?.message && (
-                  <FieldError>{errors.problemDescription.message}</FieldError>
-                )}
-              </Field>
-            </FieldGroup>
-
-            <Separator />
-
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
             <div>
               <div className="mb-3 flex items-center gap-2 text-sm font-medium">
                 <Phone className="size-4 text-muted-foreground" aria-hidden />
                 {t("common.dashboard.overview.newCallSheet.callDetails")}
               </div>
-              <div className="grid gap-4 sm:grid-cols-[minmax(0,120px)_1fr]">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[max-content_minmax(0,120px)_minmax(0,1fr)] sm:items-end">
+                <Controller
+                  control={control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <Field
+                      className="w-max max-w-full"
+                      style={{ width: customerColumnMinWidth, maxWidth: "100%" }}
+                    >
+                      <FieldLabel htmlFor="customerId">
+                        {t(
+                          "common.dashboard.overview.newCallSheet.accountLabel",
+                        )}
+                      </FieldLabel>
+                      <FieldDescription>
+                        {t(
+                          "common.dashboard.overview.newCallSheet.accountDescription",
+                        )}
+                      </FieldDescription>
+                      <div className="relative">
+                        <Button
+                          id="customerId"
+                          type="button"
+                          variant="outline"
+                          onClick={() => setCustomerPickerOpen((prev) => !prev)}
+                          disabled={loadingCustomers}
+                          className={cn(
+                            "w-full justify-between gap-2 font-normal whitespace-nowrap ",
+                            errors.customerId && "border-destructive",
+                          )}
+                          aria-invalid={!!errors.customerId}
+                          aria-expanded={customerPickerOpen}
+                        >
+                          <span>
+                            {field.value > 0
+                              ? (customers.find((c) => c.id === field.value)
+                                  ?.CLIENT.slice(0, 50) ??
+                                t(
+                                  "common.dashboard.overview.newCallSheet.selectCustomer",
+                                ))
+                              : loadingCustomers
+                                ? t(
+                                    "common.dashboard.overview.newCallSheet.loadingCustomers",
+                                  )
+                                : t(
+                                    "common.dashboard.overview.newCallSheet.selectCustomer",
+                                  )}
+                          </span>
+                          <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
+                        </Button>
+                        {customerPickerOpen && (
+                          <div
+                            className="absolute left-0 top-full z-50 mt-2 w-max min-w-full rounded-xl border bg-popover shadow-lg"
+                            style={{ minWidth: customerColumnMinWidth }}
+                          >
+                            <Command shouldFilter={false}>
+                              <CommandInput
+                                placeholder={t(
+                                  "common.dashboard.overview.newCallSheet.searchCustomerPlaceholder",
+                                )}
+                                value={customerSearch}
+                                onValueChange={setCustomerSearch}
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  {t(
+                                    "common.dashboard.overview.newCallSheet.noCustomersFound",
+                                  )}
+                                </CommandEmpty>
+                                <CommandGroup
+                                  heading={t(
+                                    "common.dashboard.overview.newCallSheet.customersHeading",
+                                  )}
+                                >
+                                  {customers.map((c) => (
+                                    <CommandItem
+                                      key={c.id}
+                                      value={`${c.CLIENT} ${c.id}`}
+                                      data-checked={field.value === c.id}
+                                      className="whitespace-nowrap"
+                                      onSelect={() => {
+                                        field.onChange(c.id);
+                                        setCustomerPickerOpen(false);
+                                      }}
+                                    >
+                                      <span className="font-mono text-xs text-muted-foreground">
+                                        #{c.id}
+                                      </span>
+                                      <span>{c.CLIENT}</span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </div>
+                        )}
+                      </div>
+                      {errors.customerId?.message && (
+                        <FieldError>{errors.customerId.message}</FieldError>
+                      )}
+                    </Field>
+                  )}
+                />
+
                 <Field>
                   <FieldLabel htmlFor="callSim">
                     {t("common.dashboard.overview.newCallSheet.lineLabel")}
@@ -273,7 +349,11 @@ function NewformSheet() {
                           className={cn(errors.callSim && "border-destructive")}
                           aria-invalid={!!errors.callSim}
                         >
-                          <SelectValue placeholder={t("common.dashboard.overview.newCallSheet.linePlaceholder")} />
+                          <SelectValue
+                            placeholder={t(
+                              "common.dashboard.overview.newCallSheet.linePlaceholder",
+                            )}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -294,13 +374,17 @@ function NewformSheet() {
 
                 <Field>
                   <FieldLabel htmlFor="callNumber">
-                    {t("common.dashboard.overview.newCallSheet.callerNumberLabel")}
+                    {t(
+                      "common.dashboard.overview.newCallSheet.callerNumberLabel",
+                    )}
                   </FieldLabel>
                   <Input
                     id="callNumber"
                     type="tel"
                     inputMode="tel"
-                    placeholder={t("common.dashboard.overview.newCallSheet.callerNumberPlaceholder")}
+                    placeholder={t(
+                      "common.dashboard.overview.newCallSheet.callerNumberPlaceholder",
+                    )}
                     className={cn(errors.callNumber && "border-destructive")}
                     {...register("callNumber")}
                   />
@@ -313,89 +397,58 @@ function NewformSheet() {
 
             <Separator />
 
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                <UserRound
-                  className="size-4 text-muted-foreground"
-                  aria-hidden
+            <FieldGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="problemType">
+                  {t("common.dashboard.overview.newCallSheet.problemTypeLabel")}
+                </FieldLabel>
+                <FieldDescription>
+                  {t(
+                    "common.dashboard.overview.newCallSheet.problemTypeDescription",
+                  )}
+                </FieldDescription>
+                <Input
+                  id="problemType"
+                  placeholder={t(
+                    "common.dashboard.overview.newCallSheet.problemTypePlaceholder",
+                  )}
+                  autoComplete="off"
+                  className={cn(errors.problemType && "border-destructive")}
+                  {...register("problemType")}
                 />
-                {t("common.dashboard.overview.newCallSheet.customerSection")}
-              </div>
-              <Controller
-                control={control}
-                name="customerId"
-                render={({ field }) => (
-                  <Field className="mt-3">
-                    <FieldLabel htmlFor="customerId">
-                      {t("common.dashboard.overview.newCallSheet.accountLabel")}
-                    </FieldLabel>
-                    <FieldDescription>
-                      {t("common.dashboard.overview.newCallSheet.accountDescription")}
-                    </FieldDescription>
-                    <div className="relative">
-                      <Button
-                        id="customerId"
-                        type="button"
-                        variant="outline"
-                        onClick={() => setCustomerPickerOpen((prev) => !prev)}
-                        disabled={loadingCustomers}
-                        className={cn(
-                          "w-full justify-between font-normal",
-                          errors.customerId && "border-destructive",
-                        )}
-                        aria-invalid={!!errors.customerId}
-                        aria-expanded={customerPickerOpen}
-                      >
-                        <span className="truncate">
-                          {field.value > 0
-                            ? (customers.find((c) => c.id === field.value)?.CLIENT ??
-                              t("common.dashboard.overview.newCallSheet.selectCustomer"))
-                            : loadingCustomers
-                              ? t("common.dashboard.overview.newCallSheet.loadingCustomers")
-                              : t("common.dashboard.overview.newCallSheet.selectCustomer")}
-                        </span>
-                        <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
-                      </Button>
-                      {customerPickerOpen && (
-                        <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-xl border bg-popover shadow-lg">
-                          <Command shouldFilter={false}>
-                            <CommandInput
-                              placeholder={t("common.dashboard.overview.newCallSheet.searchCustomerPlaceholder")}
-                              value={customerSearch}
-                              onValueChange={setCustomerSearch}
-                            />
-                            <CommandList>
-                              <CommandEmpty>{t("common.dashboard.overview.newCallSheet.noCustomersFound")}</CommandEmpty>
-                              <CommandGroup heading={t("common.dashboard.overview.newCallSheet.customersHeading")}>
-                                {customers.map((c) => (
-                                  <CommandItem
-                                    key={c.id}
-                                    value={`${c.CLIENT} ${c.id}`}
-                                    data-checked={field.value === c.id}
-                                    onSelect={() => {
-                                      field.onChange(c.id);
-                                      setCustomerPickerOpen(false);
-                                    }}
-                                  >
-                                    <span className="font-mono text-xs text-muted-foreground">
-                                      #{c.id}
-                                    </span>
-                                    <span className="truncate">{c.CLIENT}</span>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </div>
-                      )}
-                    </div>
-                    {errors.customerId?.message && (
-                      <FieldError>{errors.customerId.message}</FieldError>
-                    )}
-                  </Field>
+                {errors.problemType?.message && (
+                  <FieldError>{errors.problemType.message}</FieldError>
                 )}
-              />
-            </div>
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="problemDescription">
+                  {t(
+                    "common.dashboard.overview.newCallSheet.whatHappenedLabel",
+                  )}
+                </FieldLabel>
+                <FieldDescription>
+                  {t(
+                    "common.dashboard.overview.newCallSheet.whatHappenedDescription",
+                  )}
+                </FieldDescription>
+                <Textarea
+                  id="problemDescription"
+                  placeholder={t(
+                    "common.dashboard.overview.newCallSheet.whatHappenedPlaceholder",
+                  )}
+                  rows={4}
+                  className={cn(
+                    "min-h-[100px] resize-y",
+                    errors.problemDescription && "border-destructive",
+                  )}
+                  {...register("problemDescription")}
+                />
+                {errors.problemDescription?.message && (
+                  <FieldError>{errors.problemDescription.message}</FieldError>
+                )}
+              </Field>
+            </FieldGroup>
 
             <Separator />
 
@@ -411,7 +464,9 @@ function NewformSheet() {
               </FieldDescription>
               <Textarea
                 id="observation"
-                placeholder={t("common.dashboard.overview.newCallSheet.notesPlaceholder")}
+                placeholder={t(
+                  "common.dashboard.overview.newCallSheet.notesPlaceholder",
+                )}
                 rows={3}
                 className="resize-y"
                 {...register("observation")}
@@ -419,7 +474,7 @@ function NewformSheet() {
             </Field>
           </div>
 
-          <div className="flex flex-col gap-3 border-t bg-muted/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex shrink-0 flex-col gap-3 border-t bg-muted/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <ClipboardList className="size-3.5 shrink-0" aria-hidden />
               {t("common.dashboard.overview.newCallSheet.savedAs")}{" "}
